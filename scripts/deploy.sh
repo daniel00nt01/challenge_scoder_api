@@ -2,8 +2,9 @@
 
 echo "🚀 Starting deployment..."
 
-# Ir para o diretório do projeto
-cd /var/www/medical-clinic/challenge_scoder_api
+# Ir para o diretório do projeto (corrigindo o caminho)
+PROJECT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/.."
+cd "$PROJECT_DIR"
 
 # Backup dos arquivos de configuração
 echo "📦 Creating backup of configuration files..."
