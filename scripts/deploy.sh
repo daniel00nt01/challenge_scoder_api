@@ -11,6 +11,12 @@ echo "📦 Creating backup of configuration files..."
 if [ -f .env ]; then
     cp .env .env.backup
 fi
+if [ -d nginx/conf.d ]; then
+    cp -r nginx/conf.d nginx/conf.d.backup
+fi
+if [ -d nginx/ssl ]; then
+    cp -r nginx/ssl nginx/ssl.backup
+fi
 
 # Puxar alterações do Git
 echo "⬇️ Pulling latest changes from Git..."
@@ -21,6 +27,14 @@ git pull origin main
 echo "🔄 Restoring configuration files..."
 if [ -f .env.backup ]; then
     cp .env.backup .env
+fi
+if [ -d nginx/conf.d.backup ]; then
+    cp -r nginx/conf.d.backup/* nginx/conf.d/
+    rm -rf nginx/conf.d.backup
+fi
+if [ -d nginx/ssl.backup ]; then
+    cp -r nginx/ssl.backup/* nginx/ssl/
+    rm -rf nginx/ssl.backup
 fi
 
 # Reconstruir e reiniciar containers
@@ -41,4 +55,4 @@ echo "✅ Deployment completed!"
 
 # Testar a API
 echo "🔌 Testing API health..."
-curl -s http://localhost:3000/health || echo "❌ Health check failed" 
+curl -sk https://localhost/health || echo "❌ Health check failed" 
