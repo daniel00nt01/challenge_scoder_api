@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=Danie#2230
+      - DB_DATABASE=medical_clinic
+      - JWT_SECRET=your_production_jwt_secret
+      - JWT_EXPIRATION=1d
+    depends_on:
+      - db
+    networks:
+      - app-network
+    restart: always
+
+  db:
+    image: postgres:15-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=Danie#2230
+      - POSTGRES_DB=medical_clinic
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+    restart: always
+
+volumes:
+  postgres_data:
+
+networks:
+  app-network:
+    driver: bridge 
