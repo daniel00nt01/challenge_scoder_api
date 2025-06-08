@@ -9,6 +9,7 @@ import appointmentRoutes from './routes/appointment.routes';
 import { AppDataSource } from './config/data-source';
 import 'express-async-errors';
 import { specs } from './config/swagger';
+import path from 'path';
 
 // Load environment variables
 config();
@@ -26,8 +27,12 @@ app.use(helmet({
 }));
 app.use(express.json());
 
+// Serve Swagger UI static files
+app.use('/api-docs', express.static(path.join(__dirname, 'node_modules/swagger-ui-dist')));
+
 // Swagger Documentation
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs, {
+app.use('/api-docs', swaggerUi.serve);
+app.get('/api-docs', swaggerUi.setup(specs, {
     explorer: true,
     customSiteTitle: 'Medical Clinic API Documentation',
     swaggerOptions: {
