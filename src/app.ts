@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import express from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import { config } from 'dotenv';
@@ -19,44 +19,36 @@ const app = express();
 // Middleware
 app.use(cors());
 
-// Desabilitar headers de segurança que estão causando problemas
-app.use(
-    helmet({
-        contentSecurityPolicy: false,
-        crossOriginEmbedderPolicy: false,
-        crossOriginOpenerPolicy: false,
-        crossOriginResourcePolicy: false,
-        originAgentCluster: false
-    })
-);
+// Configuração básica do Helmet
+app.use(helmet.dnsPrefetchControl());
+app.use(helmet.hidePoweredBy());
+app.use(helmet.hsts({ maxAge: 0, includeSubDomains: false })); // Desabilita HSTS
+app.use(helmet.ieNoOpen());
+app.use(helmet.noSniff());
+app.use(helmet.xssFilter());
 
 app.use(express.json());
 
 // Swagger Documentation
-app.use('/api-docs', swaggerUi.serve);
-app.get('/api-docs', (req, res, next) => {
-    res.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none');
-    return swaggerUi.setup(specs, {
-        explorer: true,
-        customSiteTitle: 'Medical Clinic API Documentation',
-        swaggerOptions: {
-            displayRequestDuration: true,
-            docExpansion: 'none',
-            filter: true,
-            showCommonExtensions: true,
-            url: '/api-docs/swagger.json'
-        }
-    })(req, res, next);
-});
-
-// Serve swagger.json
-app.get('/api-docs/swagger.json', (req, res) => {
-    res.setHeader('Content-Type', 'application/json');
-    res.json(specs);
-});
+app.use('/api-docs', (req: Request, res: Response, next: NextFunction) => {
+    // Remove headers que podem causar problemas
+    res.removeHeader('Cross-Origin-Opener-Policy');
+    res.removeHeader('Cross-Origin-Embedder-Policy');
+    res.removeHeader('Cross-Origin-Resource-Policy');
+    next();
+}, swaggerUi.serve, swaggerUi.setup(specs, {
+    explorer: true,
+    customSiteTitle: 'Medical Clinic API Documentation',
+    swaggerOptions: {
+        displayRequestDuration: true,
+        docExpansion: 'none',
+        filter: true,
+        showCommonExtensions: true
+    }
+}));
 
 // Health Check
-app.get('/health', async (req, res) => {
+app.get('/health', async (req: Request, res: Response) => {
     try {
         // Verifica conexão com o banco
         await AppDataSource.query('SELECT 1');
@@ -91,7 +83,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/appointments', appointmentRoutes);
 
 // Error handling middleware
-app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
+app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
     console.error(err.stack);
     res.status(500).json({ message: 'Internal server error' });
 });

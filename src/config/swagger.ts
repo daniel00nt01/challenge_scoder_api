@@ -14,8 +14,8 @@ const options: swaggerJsdoc.Options = {
         },
         servers: [
             {
-                url: '/api',
-                description: 'Production server'
+                url: '.',
+                description: 'Current server'
             }
         ],
         components: {

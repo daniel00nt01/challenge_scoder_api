@@ -8,7 +8,7 @@ const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
 const helmet_1 = __importDefault(require("helmet"));
 const dotenv_1 = require("dotenv");
-const swagger_ui_express_1 = __importDefault(require("swagger-ui-express"));
+const swagger_ui_express_1 = __importDefault(require("U-ui-express"));
 const auth_routes_1 = __importDefault(require("./routes/auth.routes"));
 const appointment_routes_1 = __importDefault(require("./routes/appointment.routes"));
 require("express-async-errors");
