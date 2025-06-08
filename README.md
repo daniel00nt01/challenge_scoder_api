@@ -17,40 +17,129 @@ The API is hosted on Digital Ocean and can be accessed through the following end
 
 - **POST** `/api/auth/register`
   - Register a new user
-  - Body: `{ "email": "string", "password": "string", "name": "string" }`
+  - Request Body:
+    ```json
+    {
+       "name": "Dr. João Silva",
+       "email": "joao.silva2@example.com",
+       "password": "123456",
+       "phone": "11999999999",
+       "crm": "123456",
+       "specialization": "Cardiologia"
+   }
+    ```
 
 - **POST** `/api/auth/login`
   - Perform login
-  - Body: `{ "email": "string", "password": "string" }`
-  - Returns: JWT Token
+  - Request Body:
+    ```json
+    {
+      "email": "string",
+      "password": "string"
+    }
+    ```
+  - Response:
+    ```json
+    {
+      "user": {
+        "id": "uuid",
+        "name": "string",
+        "email": "string",
+        "role": "DOCTOR | PATIENT"
+      },
+      "token": "JWT_TOKEN"
+    }
+    ```
 
 ### Appointments
 
 - **GET** `/api/appointments`
   - List all appointments
   - Requires: JWT Token in header `Authorization: Bearer <token>`
+  - Query Parameters:
+    - `status`: (optional) Filter by status (SCHEDULED, COMPLETED, CANCELLED)
+    - `date`: (optional) Filter by date (YYYY-MM-DD)
+  - Response:
+    ```json
+    {
+      "data": [
+        {
+          "id": "uuid",
+          "patientId": "uuid",
+          "doctorId": "uuid",
+          "date": "timestamp",
+          "status": "SCHEDULED | COMPLETED | CANCELLED",
+          "notes": "string",
+          "createdAt": "timestamp",
+          "updatedAt": "timestamp",
+          "patient": {
+            "id": "uuid",
+            "name": "string"
+          },
+          "doctor": {
+            "id": "uuid",
+            "name": "string"
+          }
+        }
+      ],
+      "total": "number",
+      "page": "number",
+      "limit": "number"
+    }
+    ```
 
 - **POST** `/api/appointments`
   - Create a new appointment
   - Requires: JWT Token
-  - Body: 
+  - Request Body:
     ```json
     {
-      "patientName": "string",
-      "doctorName": "string",
-      "date": "2024-03-20T10:00:00Z",
-      "status": "SCHEDULED"
+      "patientId": "uuid",
+      "doctorId": "uuid",
+      "date": "timestamp",
+      "notes": "string (optional)"
+    }
+    ```
+  - Response:
+    ```json
+    {
+      "id": "uuid",
+      "patientId": "uuid",
+      "doctorId": "uuid",
+      "date": "timestamp",
+      "status": "SCHEDULED",
+      "notes": "string",
+      "createdAt": "timestamp",
+      "updatedAt": "timestamp"
     }
     ```
 
 - **PUT** `/api/appointments/:id`
   - Update an existing appointment
   - Requires: JWT Token
-  - Body: Same fields as POST
+  - URL Parameters:
+    - `id`: Appointment UUID
+  - Request Body:
+    ```json
+    {
+      "date": "timestamp (optional)",
+      "status": "SCHEDULED | COMPLETED | CANCELLED (optional)",
+      "notes": "string (optional)"
+    }
+    ```
+  - Response: Updated appointment object
 
 - **DELETE** `/api/appointments/:id`
   - Cancel an appointment
   - Requires: JWT Token
+  - URL Parameters:
+    - `id`: Appointment UUID
+  - Response:
+    ```json
+    {
+      "message": "Appointment cancelled successfully"
+    }
+    ```
 
 ## Running Locally
 
@@ -152,57 +241,6 @@ npm run typeorm migration:run
 
 ## API Usage Examples
 
-### Using cURL
-
-1. Register a user:
-```bash
-curl -X POST http://167.99.230.88/api/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{"email":"your@email.com","password":"your_password","name":"Your Name"}'
-```
-
-2. Login:
-```bash
-curl -X POST http://167.99.230.88/api/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"email":"your@email.com","password":"your_password"}'
-```
-
-3. List appointments (using token from login):
-```bash
-curl http://167.99.230.88/api/appointments \
-  -H "Authorization: Bearer your_token_here"
-```
-
-### Using JavaScript/TypeScript
-
-```typescript
-// Login example
-async function login(email: string, password: string) {
-  const response = await fetch('http://167.99.230.88/api/auth/login', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ email, password }),
-  });
-  return await response.json();
-}
-
-// Create appointment example
-async function createAppointment(token: string, appointmentData: any) {
-  const response = await fetch('http://167.99.230.88/api/appointments', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
-    },
-    body: JSON.stringify(appointmentData),
-  });
-  return await response.json();
-}
-```
-
 ## Technologies Used
 
 - Node.js
@@ -214,45 +252,177 @@ async function createAppointment(token: string, appointmentData: any) {
 - Nginx
 - JWT for authentication
 
-## Security Features
 
-- All passwords are hashed before storage
-- JWT-based authentication
-- Validation middlewares for all routes
-- Rate limiting to prevent brute force attacks
-- Security headers via Helmet
-- CORS protection
-- Input validation and sanitization
+## Testing with Insomnia
 
-## Error Handling
+### 1. Initial Setup
+1. Download and install Insomnia from https://insomnia.rest/
+2. Create a new Collection (Click "Create" > "Request Collection")
+3. Name it "Medical Clinic API"
 
-The API uses standard HTTP status codes and returns errors in the following format:
-
+### 2. Environment Setup
+1. Click the "No Environment" dropdown
+2. Select "Base Environment"
+3. Add the following JSON:
 ```json
 {
-  "status": "error",
-  "message": "Error description",
-  "code": "ERROR_CODE"
+  "baseUrl": "http://167.99.230.88:3000",
+  "token": ""
 }
 ```
 
-Common status codes:
-- 200: Success
-- 201: Created
-- 400: Bad Request
-- 401: Unauthorized
-- 403: Forbidden
-- 404: Not Found
-- 500: Internal Server Error
+### 3. Testing Endpoints
 
-## Contributing
+#### Register Doctor
+- Method: `POST`
+- URL: `{{ baseUrl }}/api/auth/register/doctor`
+- Headers:
+  ```
+  Content-Type: application/json
+  ```
+- Body (JSON):
+  ```json
+  {
+    "name": "Dr. João Silva",
+    "email": "joao.silva2@example.com",
+    "password": "123456",
+    "phone": "11999999999",
+    "crm": "123456",
+    "specialization": "Cardiologia"
+  }
+  ```
 
-1. Fork the project
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+#### Register Patient
+- Method: `POST`
+- URL: `{{ baseUrl }}/api/auth/register/patient`
+- Headers:
+  ```
+  Content-Type: application/json
+  ```
+- Body (JSON):
+  ```json
+  {
+    "name": "Maria Santos",
+    "email": "maria.santos@example.com",
+    "password": "123456",
+    "phone": "11988888888",
+    "birthDate": "1990-01-01",
+    "healthInsurance": "Unimed"
+  }
+  ```
 
-## License
+#### Login
+- Method: `POST`
+- URL: `{{ baseUrl }}/api/auth/login`
+- Headers:
+  ```
+  Content-Type: application/json
+  ```
+- Body (JSON):
+  ```json
+  {
+    "email": "joao.silva2@example.com",
+    "password": "123456"
+  }
+  ```
+- After successful login, copy the token from the response and update your environment:
+  ```json
+  {
+    "baseUrl": "http://167.99.230.88:3000",
+    "token": "your_received_token_here"
+  }
+  ```
 
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details. 
+#### Create Appointment
+- Method: `POST`
+- URL: `{{ baseUrl }}/api/appointments`
+- Headers:
+  ```
+  Content-Type: application/json
+  Authorization: Bearer {{ token }}
+  ```
+- Body (JSON):
+  ```json
+  {
+    "doctorId": "doctor_id_from_register",
+    "patientId": "patient_id_from_register",
+    "date": "2024-03-20T10:00:00.000Z",
+    "notes": "Regular checkup"
+  }
+  ```
+
+#### List Appointments
+- Method: `GET`
+- URL: `{{ baseUrl }}/api/appointments`
+- Headers:
+  ```
+  Authorization: Bearer {{ token }}
+  ```
+- Query Parameters (optional):
+  - `status`: SCHEDULED, COMPLETED, or CANCELLED
+  - `date`: YYYY-MM-DD
+
+#### Update Appointment
+- Method: `PUT`
+- URL: `{{ baseUrl }}/api/appointments/:id`
+- Headers:
+  ```
+  Content-Type: application/json
+  Authorization: Bearer {{ token }}
+  ```
+- Body (JSON):
+  ```json
+  {
+    "status": "COMPLETED",
+    "notes": "Patient showed improvement"
+  }
+  ```
+
+#### Cancel Appointment
+- Method: `DELETE`
+- URL: `{{ baseUrl }}/api/appointments/:id`
+- Headers:
+  ```
+  Authorization: Bearer {{ token }}
+  ```
+
+### 4. Tips for Testing
+
+1. **Managing Multiple Environments**
+   - Create different environments for development and production
+   - Example Development Environment:
+     ```json
+     {
+       "baseUrl": "http://localhost:3000",
+       "token": ""
+     }
+     ```
+
+2. **Using Response Data**
+   - After registration, save the returned IDs for creating appointments
+   - After login, save the token in your environment
+
+3. **Testing Flow**
+   1. Register a doctor
+   2. Register a patient
+   3. Login with either account
+   4. Save the token
+   5. Create an appointment
+   6. List appointments
+   7. Update appointment status
+   8. Cancel appointment if needed
+
+4. **Error Handling**
+   - Test with invalid data to ensure proper error responses
+   - Common error scenarios to test:
+     - Invalid credentials
+     - Expired token
+     - Invalid appointment dates
+     - Non-existent IDs
+     - Missing required fields
+
+5. **Headers Cheat Sheet**
+   ```
+   Content-Type: application/json
+   Authorization: Bearer {{ token }}
+   ``` 
