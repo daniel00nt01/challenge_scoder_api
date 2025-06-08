@@ -6,7 +6,7 @@ For more facility, use script deploy.sh in your server, locate in folder scripts
 
 ## Hosted API
 
-The API is hosted on Digital Ocean and can be accessed through the following endpoints:
+The API is hosted and can be accessed through the following endpoints:
 
 - Base URL: `http://167.99.230.88:3000`
 - API Base: `http://167.99.230.88:3000/api`
@@ -333,6 +333,7 @@ npm run typeorm migration:run
   }
   ```
 
+<<<<<<< HEAD
 #### Create Appointment
 - Method: `POST`
 - URL: `{{ baseUrl }}/api/appointments`
@@ -426,3 +427,6 @@ npm run typeorm migration:run
    Content-Type: application/json
    Authorization: Bearer {{ token }}
    ``` 
+=======
+This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details. 
+>>>>>>> 097e9381878e5a2a0b67463ddc8103c35de72328
