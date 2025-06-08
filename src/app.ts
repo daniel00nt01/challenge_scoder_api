@@ -9,7 +9,6 @@ import appointmentRoutes from './routes/appointment.routes';
 import { AppDataSource } from './config/data-source';
 import 'express-async-errors';
 import { specs } from './config/swagger';
-import path from 'path';
 
 // Load environment variables
 config();
@@ -19,29 +18,42 @@ const app = express();
 
 // Middleware
 app.use(cors());
-app.use(helmet({
-    contentSecurityPolicy: false,
-    crossOriginEmbedderPolicy: false,
-    crossOriginOpenerPolicy: false,
-    crossOriginResourcePolicy: false
-}));
-app.use(express.json());
 
-// Serve Swagger UI static files
-app.use('/api-docs', express.static(path.join(__dirname, 'node_modules/swagger-ui-dist')));
+// Desabilitar headers de segurança que estão causando problemas
+app.use(
+    helmet({
+        contentSecurityPolicy: false,
+        crossOriginEmbedderPolicy: false,
+        crossOriginOpenerPolicy: false,
+        crossOriginResourcePolicy: false,
+        originAgentCluster: false
+    })
+);
+
+app.use(express.json());
 
 // Swagger Documentation
 app.use('/api-docs', swaggerUi.serve);
-app.get('/api-docs', swaggerUi.setup(specs, {
-    explorer: true,
-    customSiteTitle: 'Medical Clinic API Documentation',
-    swaggerOptions: {
-        displayRequestDuration: true,
-        docExpansion: 'none',
-        filter: true,
-        showCommonExtensions: true
-    }
-}));
+app.get('/api-docs', (req, res, next) => {
+    res.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none');
+    return swaggerUi.setup(specs, {
+        explorer: true,
+        customSiteTitle: 'Medical Clinic API Documentation',
+        swaggerOptions: {
+            displayRequestDuration: true,
+            docExpansion: 'none',
+            filter: true,
+            showCommonExtensions: true,
+            url: '/api-docs/swagger.json'
+        }
+    })(req, res, next);
+});
+
+// Serve swagger.json
+app.get('/api-docs/swagger.json', (req, res) => {
+    res.setHeader('Content-Type', 'application/json');
+    res.json(specs);
+});
 
 // Health Check
 app.get('/health', async (req, res) => {
