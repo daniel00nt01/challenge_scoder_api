@@ -20,12 +20,26 @@ const app = express();
 app.use(cors());
 
 // Configuração básica do Helmet
-app.use(helmet.dnsPrefetchControl());
-app.use(helmet.hidePoweredBy());
-app.use(helmet.hsts({ maxAge: 0, includeSubDomains: false })); // Desabilita HSTS
-app.use(helmet.ieNoOpen());
-app.use(helmet.noSniff());
-app.use(helmet.xssFilter());
+app.use(
+    helmet({
+        contentSecurityPolicy: {
+            directives: {
+                defaultSrc: ["'self'", "http:", "https:"],
+                scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "http:", "https:"],
+                styleSrc: ["'self'", "'unsafe-inline'", "http:", "https:"],
+                imgSrc: ["'self'", "data:", "http:", "https:"],
+                connectSrc: ["'self'", "http:", "https:"],
+                fontSrc: ["'self'", "http:", "https:"],
+                objectSrc: ["'none'"],
+                mediaSrc: ["'self'"],
+                frameSrc: ["'self'"],
+            },
+        },
+        crossOriginEmbedderPolicy: false,
+        crossOriginOpenerPolicy: false,
+        crossOriginResourcePolicy: false
+    })
+);
 
 app.use(express.json());
 
