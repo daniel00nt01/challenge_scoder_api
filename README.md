@@ -2,6 +2,8 @@
 
 A RESTful API for managing medical clinic appointments, built with Node.js, TypeScript, Express, and PostgreSQL.
 
+For more facility, use script deploy.sh in your server, locate in folder scripts.
+
 ## Hosted API
 
 The API is hosted on Digital Ocean and can be accessed through the following endpoints:
