@@ -6,7 +6,7 @@ For more facility, use script deploy.sh in your server, locate in folder scripts
 
 ## Hosted API
 
-The API is hosted on Digital Ocean and can be accessed through the following endpoints:
+The API is hosted and can be accessed through the following endpoints:
 
 - Base URL: `http://167.99.230.88:3000`
 - API Base: `http://167.99.230.88:3000/api`
