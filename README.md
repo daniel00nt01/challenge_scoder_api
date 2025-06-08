@@ -6,9 +6,8 @@ A RESTful API for managing medical clinic appointments, built with Node.js, Type
 
 The API is hosted on Digital Ocean and can be accessed through the following endpoints:
 
-- Base URL: `http://167.99.230.88`
-- Health Check: `http://167.99.230.88/health`
-- API Base: `http://167.99.230.88/api`
+- Base URL: `http://167.99.230.88:3000`
+- API Base: `http://167.99.230.88:3000/api`
 
 ## Available Endpoints
 
