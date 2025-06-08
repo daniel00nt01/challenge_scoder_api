@@ -3,7 +3,6 @@ import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import { config } from 'dotenv';
-import swaggerUi from 'swagger-ui-express';
 import authRoutes from './routes/auth.routes';
 import appointmentRoutes from './routes/appointment.routes';
 import { AppDataSource } from './config/data-source';
@@ -18,48 +17,18 @@ const app = express();
 
 // Middleware
 app.use(cors());
-
-// Configuração básica do Helmet
-app.use(
-    helmet({
-        contentSecurityPolicy: {
-            directives: {
-                defaultSrc: ["'self'", "http:", "https:"],
-                scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "http:", "https:"],
-                styleSrc: ["'self'", "'unsafe-inline'", "http:", "https:"],
-                imgSrc: ["'self'", "data:", "http:", "https:"],
-                connectSrc: ["'self'", "http:", "https:"],
-                fontSrc: ["'self'", "http:", "https:"],
-                objectSrc: ["'none'"],
-                mediaSrc: ["'self'"],
-                frameSrc: ["'self'"],
-            },
-        },
-        crossOriginEmbedderPolicy: false,
-        crossOriginOpenerPolicy: false,
-        crossOriginResourcePolicy: false
-    })
-);
-
+app.use(helmet({
+    contentSecurityPolicy: false,
+    crossOriginEmbedderPolicy: false,
+    crossOriginOpenerPolicy: false,
+    crossOriginResourcePolicy: false
+}));
 app.use(express.json());
 
-// Swagger Documentation
-app.use('/api-docs', (req: Request, res: Response, next: NextFunction) => {
-    // Remove headers que podem causar problemas
-    res.removeHeader('Cross-Origin-Opener-Policy');
-    res.removeHeader('Cross-Origin-Embedder-Policy');
-    res.removeHeader('Cross-Origin-Resource-Policy');
-    next();
-}, swaggerUi.serve, swaggerUi.setup(specs, {
-    explorer: true,
-    customSiteTitle: 'Medical Clinic API Documentation',
-    swaggerOptions: {
-        displayRequestDuration: true,
-        docExpansion: 'none',
-        filter: true,
-        showCommonExtensions: true
-    }
-}));
+// Serve swagger.json
+app.get('/api-docs/swagger.json', (req: Request, res: Response) => {
+    res.json(specs);
+});
 
 // Health Check
 app.get('/health', async (req: Request, res: Response) => {
