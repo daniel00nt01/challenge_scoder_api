@@ -6,7 +6,7 @@ import { config } from 'dotenv';
 import swaggerUi from 'swagger-ui-express';
 import authRoutes from './routes/auth.routes';
 import appointmentRoutes from './routes/appointment.routes';
-import healthRoutes from './routes/health.routes';
+import { AppDataSource } from './config/data-source';
 import 'express-async-errors';
 import { specs } from './config/swagger';
 
@@ -17,17 +17,72 @@ config();
 const app = express();
 
 // Middleware
-app.use(cors());
-app.use(helmet());
+app.use(cors({
+    origin: '*',
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
+app.use(helmet({
+    contentSecurityPolicy: false,
+    crossOriginEmbedderPolicy: false,
+    crossOriginOpenerPolicy: false,
+    crossOriginResourcePolicy: false
+}));
 app.use(express.json());
 
 // Swagger Documentation
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs, {
+    explorer: true,
+    customSiteTitle: 'Medical Clinic API Documentation',
+    swaggerOptions: {
+        url: '/api-docs/swagger.json',
+        displayRequestDuration: true,
+        docExpansion: 'none',
+        filter: true,
+        showCommonExtensions: true
+    }
+}));
+
+// Serve swagger.json
+app.get('/api-docs/swagger.json', (req, res) => {
+    res.setHeader('Content-Type', 'application/json');
+    res.send(specs);
+});
+
+// Health Check
+app.get('/health', async (req, res) => {
+    try {
+        // Verifica conexão com o banco
+        await AppDataSource.query('SELECT 1');
+
+        // Verifica uso de memória
+        const memoryUsage = process.memoryUsage();
+        const healthStatus = {
+            status: 'healthy',
+            timestamp: new Date().toISOString(),
+            uptime: process.uptime(),
+            memory: {
+                heapUsed: Math.round(memoryUsage.heapUsed / 1024 / 1024) + 'MB',
+                heapTotal: Math.round(memoryUsage.heapTotal / 1024 / 1024) + 'MB',
+                rss: Math.round(memoryUsage.rss / 1024 / 1024) + 'MB'
+            },
+            database: 'connected'
+        };
+
+        res.json(healthStatus);
+    } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        res.status(503).json({
+            status: 'unhealthy',
+            timestamp: new Date().toISOString(),
+            error: errorMessage
+        });
+    }
+});
 
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/appointments', appointmentRoutes);
-app.use('/', healthRoutes);
 
 // Error handling middleware
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
