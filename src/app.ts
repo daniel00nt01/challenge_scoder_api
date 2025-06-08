@@ -17,11 +17,7 @@ config();
 const app = express();
 
 // Middleware
-app.use(cors({
-    origin: '*',
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
-}));
+app.use(cors());
 app.use(helmet({
     contentSecurityPolicy: false,
     crossOriginEmbedderPolicy: false,
@@ -35,19 +31,12 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs, {
     explorer: true,
     customSiteTitle: 'Medical Clinic API Documentation',
     swaggerOptions: {
-        url: '/api-docs/swagger.json',
         displayRequestDuration: true,
         docExpansion: 'none',
         filter: true,
         showCommonExtensions: true
     }
 }));
-
-// Serve swagger.json
-app.get('/api-docs/swagger.json', (req, res) => {
-    res.setHeader('Content-Type', 'application/json');
-    res.send(specs);
-});
 
 // Health Check
 app.get('/health', async (req, res) => {
